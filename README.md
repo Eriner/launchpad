@@ -1,11 +1,12 @@
-# launchpad [![GoDoc](https://godoc.org/github.com/rakyll/launchpad?status.svg)](https://godoc.org/github.com/rakyll/launchpad)
-A package allows you to talk to your Novation Launchpad in Go. Light buttons
-or read your touches.
+# launchpad [![GoDoc](https://godoc.org/github.com/Eriner/launchpad?status.svg)](https://godoc.org/github.com/Eriner/launchpad)
+A package allows you to talk to your Novation Launchpad X in Go. Light buttons or read your touches.
 
-This library is currently only working with [Launchpad S (Green-Red Launchpads)](https://www.amazon.com/dp/B00E3XTKAG) but we are trying to support multiple models and layouts.
+Provides a state machine and middleware!
+
+This library is a fork of [rakyll/launchpad](https://github.com/rakyll/launchpad) and has legacy support for the [Launchpad S (Green-Red Launchpads)](https://www.amazon.com/dp/B00E3XTKAG).
 
 ~~~ sh
-go get github.com/rakyll/launchpad
+go get github.com/eriner/launchpad
 ~~~
 
 Portmidi is required to use this package.
@@ -17,19 +18,7 @@ $ brew install portmidi
 ```
 
 ## Usage
-Initialize a new Launchpad. If there are no currently connected Launchpad
-device, initialization will fail with an error. You can fake a device by
-creating an input and output MIDI device and name them as Launchpad.
-~~~ go
-pad, err = launchpad.Open();
-if err != nil {
-    log.Fatalf("Error initializing launchpad: %v", err)
-}
-defer pad.Close()
-
-// turn off all of the lights
-pad.Clear()
-~~~
+An example has been heavily commented in the cmd/helo_x/main.go file.
 
 ### Coordinate system
 
@@ -60,25 +49,8 @@ The coordinate system is illustrated below.
 
 A simple program to light every touch:
 
-~~~ go
-pad, err := launchpad.Open()
-if err != nil {
-    log.Fatal(err)
-}
-defer pad.Close()
-
-pad.Clear()
-
-ch := pad.Listen()
-for {
-	select {
-	case hit := <-ch:
-		pad.Light(hit.X, hit.Y, 3, 3)
-	}
-}
-~~~
-    
 ## License
+    Copyright 2020 Matt Hamilton. All Rights Reserved.
     Copyright 2013 Google Inc. All Rights Reserved.
     
     Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,3 +1,6 @@
+//
+// NOTE: this device is not currently supported in this fork.
+//
 package main
 
 import (
