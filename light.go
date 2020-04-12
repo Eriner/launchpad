@@ -1,16 +1,22 @@
 package launchpad
 
+// LightEffects are effects applied to pad lights and are one of:
+// EffectOff, EffectStatic, EffectFlash, EffectPulse.
 type LightEffect int64
-type LightColor int64
 
 const (
-	// Effects are lighting effects that can be applied to the pads
-	// using SysEx
 	EffectOff    LightEffect = 0x80
 	EffectStatic LightEffect = 0x90
 	EffectFlash  LightEffect = 0x91
 	EffectPulse  LightEffect = 0x92
 )
+
+// LightColor are palette-based colors used by the device for
+// the pulse and flash effects, and for writing colors over the
+// MIDI interface.
+// LightColors are set by the devices, as colors may differ between
+// devices.
+type LightColor int64
 
 // Light represents the state of a pad light
 type Light struct {
@@ -21,6 +27,7 @@ type Light struct {
 	G      int8
 	B      int8
 
+	// DisplayLocked prevents Light redraws while true
 	DisplayLocked bool
 }
 
@@ -32,6 +39,7 @@ func (l *Light) ToggleDisplayLock() {
 	l.DisplayLocked = !l.DisplayLocked
 }
 
+// RGB sets RGB values on a Light
 func (l *Light) RGB(r, g, b int8) {
 	if r < 0 {
 		r = -r

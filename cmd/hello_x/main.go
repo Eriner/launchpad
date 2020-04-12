@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	// open the launchpad device, in this case a Launchpad Xe
+	// open the launchpad device, in this case a Launchpad X
 	lp, err := lpx.Open()
 	if err != nil {
 		die(err)

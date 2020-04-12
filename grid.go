@@ -2,7 +2,9 @@ package launchpad
 
 import "time"
 
-// NewGrid provides a grid state machine for an opened Launchpad device
+// NewGrid provides a grid state machine for an opened Launchpad device.
+// This grid synchronizes its state to the launchpad after UseGrid has been
+// called.
 func NewGrid(lp Launchpad) (*Grid, error) {
 	g := &Grid{
 		Pads:        make(map[Coordinate]*Pad),
@@ -26,21 +28,24 @@ func NewGrid(lp Launchpad) (*Grid, error) {
 // Coordinates are a position on the pad
 type Coordinate int64
 
+// XY returns the X and Y
 func (c *Coordinate) XY() (x, y int) {
 	x = int(*c) % 10
 	y = int(*c) / 10
 	return
 }
 
+// Coord converts X and Y coordinates into type Coordinate
 func Coord(x, y int) Coordinate {
 	return Coordinate((y * 10) + x)
 }
 
-// Grid is a state-machine representation of the desired Pad grid state
+// Grid is a state-machine made of Pads that represents  of the desired
+// Pad grid state.
 type Grid struct {
 	Pads map[Coordinate]*Pad
 	// renderDelay is how long the state machine pauses after
-	// each full-grid redraw
+	// each full-grid redraw.
 	renderDelay time.Duration
 }
 
