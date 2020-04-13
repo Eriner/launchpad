@@ -55,12 +55,15 @@ func main() {
 			pad.Light.RGB(127, 0, 0)
 
 			// Demonstration of using middleware to wrap a handler for single tap events
-			pad.SingleTapHandler = logTap(
-				middleware.SimulatedFeedbackInverted(
-					pad.SingleTapHandler, time.Second*3,
-				))
-			// And another for double-tap events, but without the logTap middleware func
-			pad.DoubleTapHandler = middleware.SimulatedFeedbackPulseToggle(pad.DoubleTapHandler)
+			pad.SingleTapHandler = middleware.SimulatedFeedbackInverted(
+				pad.SingleTapHandler, time.Second*3,
+			)
+			// And another for double-tap events, but with the logDoubleTap middleware func
+			pad.DoubleTapHandler = logDoubleTap(
+				middleware.SimulatedFeedbackPulseToggle(
+					pad.DoubleTapHandler,
+				),
+			)
 		}
 	}
 	// here we override the double-tap handler for the bottom left pad.
@@ -69,20 +72,33 @@ func main() {
 		log.Println("overridden double-tap: no pulsing for this corner!")
 		return nil
 	})
+	// we can also create our own state-machine (without middleware),
+	// printing the result of taps.
+	taps := testGrid.Taps()
+	go func(tapsCh <-chan launchpad.Tap) {
+		for {
+			tap := <-tapsCh
+			switch tap.Type {
+			case launchpad.SingleTap:
+				log.Println("single tap detected at X: %d, Y: %d", tap.X, tap.Y)
+			case launchpad.DoubleTap:
+				log.Println("double tap detected at X: %d, Y: %d", tap.X, tap.Y)
+			}
+		}
+	}(taps)
 
 	// Now that we have assigned handlers for our button presses and
 	// the state machine is running, we can just sleep forever
 	select {}
 }
 
-// logTap is an example of how to create middleware for pad hit event handlers
+// logDoubleTap is an example of how to create middleware for pad hit event handlers
 //
-// logTap will print the X and Y positions of a pad when pressed (and wrapped
+// logDoubleTap will print the X and Y positions of a pad when pressed (and wrapped
 // around a handler).
-func logTap(next launchpad.HitHandler) launchpad.HitHandler {
+func logDoubleTap(next launchpad.HitHandler) launchpad.HitHandler {
 	return launchpad.HitFunc(func(p *launchpad.Pad) error {
-		x, y := p.Light.Coord.XY()
-		log.Printf("tap! Pos: X=%d, Y=%d", x, y)
+		log.Printf("double tap disco!")
 		next.Apply(p)
 		return nil
 	})

@@ -265,9 +265,9 @@ func (l *Launchpad) LEDFeedback(internal, external bool) error {
 }
 
 // Listen returns launchpad button presses
-func (l *Launchpad) Listen() <-chan launchpad.Coordinate {
-	ch := make(chan launchpad.Coordinate)
-	go func(pad *Launchpad, ch chan launchpad.Coordinate) {
+func (l *Launchpad) Listen() <-chan launchpad.Tap {
+	ch := make(chan launchpad.Tap)
+	go func(pad *Launchpad, ch chan launchpad.Tap) {
 		for {
 			time.Sleep(5 * time.Millisecond)
 			hits, err := pad.Read()
@@ -283,7 +283,7 @@ func (l *Launchpad) Listen() <-chan launchpad.Coordinate {
 }
 
 // Read returns events from the MIDI stream. This includes button presses
-func (l *Launchpad) Read() (hits []launchpad.Coordinate, err error) {
+func (l *Launchpad) Read() (taps []launchpad.Tap, err error) {
 	var evts []portmidi.Event
 	if evts, err = l.MIDI.inputStream.Read(64); err != nil {
 		return
@@ -292,7 +292,13 @@ func (l *Launchpad) Read() (hits []launchpad.Coordinate, err error) {
 		i := int(evt.Data1)
 		x := i % 10
 		y := i / 10
-		hits = append(hits, launchpad.Coord(x, y))
+		tap := launchpad.Tap{
+			Time:       time.Now(),
+			X:          x,
+			Y:          y,
+			Coordinate: launchpad.Coord(x, y),
+		}
+		taps = append(taps, tap)
 	}
 	return
 }

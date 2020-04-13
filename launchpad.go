@@ -14,7 +14,7 @@ type Launchpad interface {
 	// a device clear command.
 	Clear() error
 	// Listen collects coordinates of pad presses
-	Listen() <-chan Coordinate
+	Listen() <-chan Tap
 
 	// Light applies palatte-based lights over the MIDI channel
 	//NOTE: LightSysEx should be preferred over Light, as LightSysEx
@@ -66,7 +66,26 @@ type Pad struct {
 	DoubleTapHandler HitHandler
 	// Only one HitFunc should ever be launched at a time.
 	hitFuncMu *sync.Mutex
-	// rollingHitsRecord contains a rolling record of hit events for a given
-	// time window
-	rollingHitsRecord []time.Time
 }
+
+type Tap struct {
+	// Times returns the time of a button press
+	Time time.Time
+	// DecisionTime returns the time a button press is categorized (single vs double)
+	// and decided, which is based on a state machine with a ~200ms input lag.
+	DecisionTime time.Time
+	// TapType returns the type of tap that was detected, be it single or double.
+	Type TapType
+	// Coordinate is the location of the tap
+	Coordinate Coordinate
+	// X and Y are provided for developer convenience, and derive from Coordinate.
+	X int
+	Y int
+}
+
+type TapType int
+
+const (
+	SingleTap TapType = iota
+	DoubleTap
+)

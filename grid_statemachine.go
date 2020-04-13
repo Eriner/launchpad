@@ -7,14 +7,15 @@ import (
 
 // UseGrid launches the a grid's state machine on a given Launchpad
 func UseGrid(lp Launchpad, g *Grid) {
-	// start a listener to trigger HitFunc when pad is pressed
+	// start a listener for taps, recording the tap time.
 	go func(p Launchpad, g *Grid) {
 		c := p.Listen()
 		for {
-			hit := <-c
-			hitTime := time.Now()
-			pad := g.Pads[hit]
-			pad.rollingHitsRecord = append(pad.rollingHitsRecord, hitTime)
+			tap := <-c
+			tap.Time = time.Now()
+			g.lastTap[tap.Coordinate] = tap.Time
+			g.tapCount[tap.Coordinate]++
+			g.taps <- tap
 		}
 	}(lp, g)
 	// build and apply desired grid state
@@ -22,11 +23,6 @@ func UseGrid(lp Launchpad, g *Grid) {
 		for {
 			var lights []Light
 			for _, pad := range g.Pads {
-				/*
-					if pad.X == 9 || pad.Y == 9 {
-						continue
-					}
-				*/
 				if pad.Light.DisplayLocked {
 					continue
 				}
@@ -40,32 +36,20 @@ func UseGrid(lp Launchpad, g *Grid) {
 			time.Sleep(g.renderDelay)
 		}
 	}(lp, g)
-	// cleanup rollingHitsRecord for pads
 	go func(g *Grid) {
+		tapsCh := g.Taps()
 		for {
-			for _, pad := range g.Pads {
-				pad.hitFuncMu.Lock()
-				for _, hit := range pad.rollingHitsRecord {
-					// decision time! single, tripple, or double tap?
-					if time.Since(hit) > 200*time.Millisecond {
-						hitEventCount := len(pad.rollingHitsRecord) / 2
-						switch hitEventCount {
-						case 0:
-							continue
-						case 1:
-							go pad.SingleTapHandler.Apply(pad)
-						case 2:
-							go pad.DoubleTapHandler.Apply(pad)
-						}
-						// clear the hits
-						pad.rollingHitsRecord = make([]time.Time, 0)
-					}
+			tap := <-tapsCh
+			pad := g.Pads[tap.Coordinate]
+			go func(p *Pad, t Tap) {
+				//TODO: handle errors below
+				switch t.Type {
+				case SingleTap:
+					p.SingleTapHandler.Apply(p)
+				case DoubleTap:
+					p.DoubleTapHandler.Apply(p)
 				}
-				// we wait an extra while to prevent spillover
-				// events from a hold from progressing
-				pad.hitFuncMu.Unlock()
-			}
-			time.Sleep(50 * time.Millisecond)
+			}(pad, tap)
 		}
 	}(g)
 	return
