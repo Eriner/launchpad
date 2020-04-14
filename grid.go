@@ -102,6 +102,7 @@ func (g *Grid) Taps() chan Tap {
 				// 200ms is the time we wait to determine if this was a
 				// single or double tap
 				time.Sleep(200 * time.Millisecond)
+				//log.Println(t.HoldDuration)
 				t.DecisionTime = time.Now()
 				switch tc := g.tapCount[t.Coordinate]; tc {
 				case 0: //NOTE: this often occurs after double taps

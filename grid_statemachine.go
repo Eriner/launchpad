@@ -29,10 +29,13 @@ func UseGrid(lp Launchpad, g *Grid) {
 					// tap type.
 					//log.Println("fixed desync")
 					g.isDepressed[tap.Coordinate] = !g.isDepressed[tap.Coordinate]
+					g.lastTap[tap.Coordinate] = time.Now()
+					continue
+				} else {
+					tap.HoldDuration = holdDuration
+					g.tapCount[tap.Coordinate]++
+					g.taps <- tap
 				}
-				tap.HoldDuration = holdDuration
-				g.tapCount[tap.Coordinate]++
-				g.taps <- tap
 			}
 			g.lastTap[tap.Coordinate] = tap.Time
 		}

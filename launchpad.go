@@ -28,7 +28,7 @@ var (
 	// defaultRenderDelay is the amount of time the pad light
 	// rendering loop waits after each cycle.
 	// Reducing this value too much will cause distortion.
-	defaultRenderDelay = 50 * time.Millisecond
+	defaultRenderDelay = 100 * time.Millisecond
 )
 
 // This is designed similarly to http.HandlerFunc

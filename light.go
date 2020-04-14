@@ -54,3 +54,23 @@ func (l *Light) RGB(r, g, b int8) {
 	l.G = g
 	l.B = b
 }
+
+// Static uses static lights
+func (l *Light) Static() {
+	l.Effect = EffectStatic
+}
+
+// Off turns a light off
+func (l *Light) Off() {
+	l.Effect = EffectOff
+}
+
+// Pulse uses a pulsing light
+func (l *Light) Pulse() {
+	l.Effect = EffectPulse
+}
+
+// Flash flashes between two colors
+func (l *Light) Flash(a, b LightColor) {
+	//TODO
+}
