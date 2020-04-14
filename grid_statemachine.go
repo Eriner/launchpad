@@ -13,9 +13,28 @@ func UseGrid(lp Launchpad, g *Grid) {
 		for {
 			tap := <-c
 			tap.Time = time.Now()
+			g.isDepressed[tap.Coordinate] = !g.isDepressed[tap.Coordinate]
+			// when button has lifted after a press
+			if !g.isDepressed[tap.Coordinate] {
+				//BUGFIX: sometimes isDepressed becomes inverted from the actual pad state,
+				// meaning the HoldDuration becomes time.Now().Sub(g.lastTap[tap.Coordinate])
+				// I'm not quite sure why this happens, or if this is just a normal desync
+				// of the Launchpad.
+				// To handle this, we invert it here if we detect this.
+				// button presses run on a 200ms clock.
+				holdDuration := tap.Time.Sub(g.lastTap[tap.Coordinate])
+				if holdDuration > 200*time.Millisecond {
+					//NOTE: "desyncs" here are at least sometimes just overruns of our detection
+					// window, meaning this conditional may useful if we ever create a HoldTap
+					// tap type.
+					//log.Println("fixed desync")
+					g.isDepressed[tap.Coordinate] = !g.isDepressed[tap.Coordinate]
+				}
+				tap.HoldDuration = holdDuration
+				g.tapCount[tap.Coordinate]++
+				g.taps <- tap
+			}
 			g.lastTap[tap.Coordinate] = tap.Time
-			g.tapCount[tap.Coordinate]++
-			g.taps <- tap
 		}
 	}(lp, g)
 	// build and apply desired grid state

@@ -15,6 +15,7 @@ func NewGrid(lp Launchpad) (*Grid, error) {
 		tapChs:      make([]chan Tap, 0),
 		tapCount:    make(map[Coordinate]int),
 		lastTap:     make(map[Coordinate]time.Time),
+		isDepressed: make(map[Coordinate]bool),
 	}
 	for x := 1; x < 10; x++ {
 		for y := 1; y < 10; y++ {
@@ -63,6 +64,9 @@ type Grid struct {
 	// lastTap records the last time a coordinate was tapped so we only
 	// ever process the latest tap event.
 	lastTap map[Coordinate]time.Time
+	// isDepressed is true if a button is pressed down, false when button
+	// is lifted.
+	isDepressed map[Coordinate]bool
 }
 
 // Pad returns a pad for a given set of X and Y coordinates
@@ -98,12 +102,8 @@ func (g *Grid) Taps() chan Tap {
 				// 200ms is the time we wait to determine if this was a
 				// single or double tap
 				time.Sleep(200 * time.Millisecond)
-				// if this wasn't the last tap for this coordinate, abort
-				if t.Time == grid.lastTap[t.Coordinate] {
-					return
-				}
 				t.DecisionTime = time.Now()
-				switch tc := g.tapCount[t.Coordinate] / 2; tc {
+				switch tc := g.tapCount[t.Coordinate]; tc {
 				case 0: //NOTE: this often occurs after double taps
 					return
 				case 1:

@@ -81,6 +81,13 @@ type Tap struct {
 	// X and Y are provided for developer convenience, and derive from Coordinate.
 	X int
 	Y int
+	// HoldDuration is the amonut of time between button press and button lift events.
+	// A HoldDuration for a sigle tap should be ~35ms
+	// A HoldDuration for a button hould should be +100ms
+	//BUG: there is a bug that can cause the HoldDuration to become the time since the
+	// previous button lift, not since the previous button press.
+	// See: UseGrid() for more details
+	HoldDuration time.Duration
 }
 
 type TapType int
